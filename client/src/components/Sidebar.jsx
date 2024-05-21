@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React from 'react'
+import React, { useState } from 'react'
 import "./myStyles.css";
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -12,6 +12,30 @@ import ConversationItems from './ConversationItems';
 
 
 function Sidebar() {
+
+    const [conversations, setConversations] = useState([
+        {
+            name: "Test#1",
+            lastMessage: "Last Message #1",
+            timeStamp: "today",
+        },
+        {
+            name: "Test#2",
+            lastMessage: "Last Message #1",
+            timeStamp: "today",
+        },
+        {
+            name: "Test#3",
+            lastMessage: "Last Message #1",
+            timeStamp: "today",
+        }
+    ])
+
+
+
+
+
+
   return (
     <div className='sidebar-container'>
         <div className='sb-header'>
@@ -53,7 +77,9 @@ function Sidebar() {
 
 
         <div className='sb-conversations'>
-            <ConversationItems />
+            {conversations.map((conversation) => {
+                return <ConversationItems props={conversation} key={conversation.name} />
+            })}
         </div>
     </div>
   )
