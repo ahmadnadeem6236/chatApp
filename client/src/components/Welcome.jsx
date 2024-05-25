@@ -1,11 +1,10 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useRef } from "react";
 import logo from "../assets/logo.png";
-import { useSelector } from "react-redux";
-import { loginSlector } from "../store/LoginSlice";
 
 function Welcome() {
-  const name = localStorage.getItem("name");
+  const name = localStorage.getItem("user");
+
   return (
     <div className="welcome-container">
       <img src={logo} alt="Logo" className="welcome-logo" />

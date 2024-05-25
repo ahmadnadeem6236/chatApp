@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Alert, IconButton, Snackbar } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import React from "react";

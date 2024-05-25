@@ -5,8 +5,7 @@ import { Button, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addName,
-  clearState,
+  clearAllState,
   signupSelector,
   signupUser,
 } from "../store/SignUpSlice";
@@ -17,8 +16,7 @@ function SignUp() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { name, isFetching, isSuccess, isError, errorMessage } =
-    useSelector(signupSelector);
+  const { loading, userInfo, error, success } = useSelector(signupSelector);
 
   const usernameChangeHandler = (e) => {
     e.preventDefault();
@@ -35,29 +33,17 @@ function SignUp() {
 
   const onSubmit = (event) => {
     event.preventDefault();
-    console.log(username, email, password);
     dispatch(signupUser({ username, email, password }));
-    dispatch(addName(username));
   };
 
   useEffect(() => {
-    return () => {
-      dispatch(clearState());
-    };
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (isError) {
-      console.log(errorMessage);
-      dispatch(clearState());
-      console.log(isError);
-    }
-    if (isSuccess) {
-      dispatch(clearState());
-      console.log(isSuccess);
+    if (success) {
+      localStorage.setItem("user", userInfo.name);
+      dispatch(clearAllState());
       navigate("/app/welcome");
     }
-  }, [isError, isSuccess]);
+  }, [navigate, success, dispatch]);
+
   return (
     <div className="login-container">
       <div className="image-container">

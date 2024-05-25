@@ -1,24 +1,19 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import logo from "../assets/logo.png";
-import { Button, TextField } from "@mui/material";
+import { Button, CircularProgress, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  loginSlector,
-  loginUser,
-  clearState,
-  addName,
-} from "../store/LoginSlice";
+import { loginSelector, loginUser, clearAllState } from "../store/LoginSlice";
 import { Email, Password } from "@mui/icons-material";
+import Toaster from "./Toaster";
 
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const { name, isFetching, isSuccess, isError, errorMessage } =
-    useSelector(loginSlector);
+  const { loading, userInfo, error, success } = useSelector(loginSelector);
 
   const usernameChangeHandler = (e) => {
     e.preventDefault();
@@ -31,29 +26,16 @@ function Login() {
 
   const onSubmit = (event) => {
     event.preventDefault();
-    console.log(username, password);
     dispatch(loginUser({ username, password }));
-    dispatch(addName(username));
   };
-  // console.log(data);
 
   useEffect(() => {
-    return () => {
-      dispatch(clearState());
-    };
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (isError) {
-      console.log(isError);
-      console.log(errorMessage);
-      dispatch(clearState());
-    }
-    if (isSuccess) {
-      dispatch(clearState());
+    if (success) {
+      localStorage.setItem("user", userInfo.name);
+      dispatch(clearAllState());
       navigate("/app/welcome");
     }
-  }, [isError, isSuccess, errorMessage, dispatch, navigate]);
+  }, [navigate, success, dispatch]);
 
   return (
     <div className="login-container">
@@ -75,14 +57,19 @@ function Login() {
           type="password"
           autoComplete="current-password"
         />
-        <Button variant="outlined" onClick={onSubmit}>
-          Login
-        </Button>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <Button variant="outlined" onClick={onSubmit}>
+            Login
+          </Button>
+        )}
         <div className="login-btn-container">
           <p>Don&apos;t have an Account ?</p>
           <Button onClick={() => navigate("sign-up")}>Sign Up</Button>
         </div>
       </div>
+      {error ? <Toaster message={"Invalid Credentials"} /> : ""}
     </div>
   );
 }

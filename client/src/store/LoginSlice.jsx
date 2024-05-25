@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
@@ -10,68 +11,59 @@ export const loginUser = createAsyncThunk(
         name: username,
         password: password,
       };
-      console.log(params);
       let link = "http://localhost:4000/user/login";
       const response = await axios.post(link, params, {
         headers: { "Content-Type": "application/json" },
       });
       let data = await response.data;
-      // console.log(data);
       if (response.status == 200) {
         localStorage.setItem("token", data.token);
         return data;
-      } else {
-        return thunkAPI.rejectWithValue(data);
       }
     } catch (error) {
-      console.log("Error >", error.response.data);
-      thunkAPI.rejectWithValue(error.response.data);
+      if (error.response && error.response.data.message) {
+        return thunkAPI.rejectWithValue(error.response.data.message);
+      } else {
+        return thunkAPI.rejectWithValue(error.message);
+      }
     }
   }
 );
 
+const initialState = {
+  loading: false,
+  userInfo: null,
+  error: null,
+  success: false,
+};
+
 export const LoginSlice = createSlice({
   name: "login",
-  initialState: {
-    name: "",
-    token: "",
-    isFetching: false,
-    isSuccess: false,
-    isError: false,
-    errorMessage: "",
-  },
+  initialState,
   reducers: {
-    clearState: (state) => {
-      state.isError = false;
-      state.isSuccess = false;
-      state.isFetching = false;
+    clearAllState: (state) => {
+      state.loading = false;
+      state.error = false;
+      state.success = false;
 
       return state;
-    },
-    addName: (state, actions) => {
-      state.name = actions.payload;
-      localStorage.setItem("name", state.name);
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.fulfilled, (state, { payload }) => {
-        state.token = payload.token;
-        state.isFetching = false;
-        state.isSuccess = true;
-        state.name = payload.name;
-        return state;
+        (state.loading = false),
+          (state.success = true),
+          (state.userInfo = payload);
+      })
+      .addCase(loginUser.pending, (state, { payload }) => {
+        (state.loading = true), (state.error = null);
       })
       .addCase(loginUser.rejected, (state, { payload }) => {
-        state.isFetching = false;
-        state.isError = true;
-        state.errorMessage = payload;
-      })
-      .addCase(loginUser.pending, (state) => {
-        state.isFetching = true;
+        (state.loading = false), (state.error = payload);
       });
   },
 });
+export const { clearAllState } = LoginSlice.actions;
 
-export const { clearState, addName } = LoginSlice.actions;
-export const loginSlector = (state) => state.login;
+export const loginSelector = (state) => state.login;
