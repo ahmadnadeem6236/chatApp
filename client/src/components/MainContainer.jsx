@@ -8,13 +8,17 @@ import CreateGroups from "./CreateGroups";
 import Users_Groups from "./Users";
 import Users from "./Users";
 import Groups from "./Groups";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 function MainContainer() {
   return (
     <div className="main-container">
       <Sidebar />
-      <Outlet />
+      {localStorage.getItem("token") ? (
+        <Outlet />
+      ) : (
+        <Navigate to={"/"} replace />
+      )}
       {/* <CreateGroups /> */}
       {/* <Welcome /> */}
       {/* <ChatArea props={conversations[0]} /> */}
