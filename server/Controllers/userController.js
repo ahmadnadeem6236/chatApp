@@ -1,8 +1,7 @@
 const express = require("express");
-const UserModel = require("../Models/userModel");
 const expressAsyncHandler = require("express-async-handler");
 const generateToken = require("../Config/generateToken");
-
+const UserModel = require("../Models/userModel");
 //Login
 const loginController = expressAsyncHandler(async (req, res) => {
   const { name, password } = req.body;
@@ -60,4 +59,24 @@ const registerController = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { loginController, registerController };
+const fetchAllUsersController = expressAsyncHandler(async (req, res) => {
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const users = await UserModel.find(keyword).find({
+    _id: { $ne: req.user._id },
+  });
+  res.send(users);
+});
+
+module.exports = {
+  loginController,
+  registerController,
+  fetchAllUsersController,
+};

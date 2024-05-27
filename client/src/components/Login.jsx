@@ -31,7 +31,7 @@ function Login() {
 
   useEffect(() => {
     if (success) {
-      localStorage.setItem("user", userInfo.name);
+      localStorage.setItem("user", JSON.stringify(userInfo));
       dispatch(clearAllState());
       navigate("/app/welcome");
     }

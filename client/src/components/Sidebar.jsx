@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./myStyles.css";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -10,26 +10,39 @@ import { IconButton } from "@mui/material";
 import ConversationItems from "./ConversationItems";
 import { useNavigate } from "react-router-dom";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { useDispatch } from "react-redux";
+import axios from "axios";
+import { myContext } from "./MainContainer";
 
 function Sidebar() {
   const navigate = useNavigate();
-  const [conversations, setConversations] = useState([
-    {
-      name: "Test#1",
-      lastMessage: "Last Message #1",
-      timeStamp: "today",
-    },
-    {
-      name: "Test#2",
-      lastMessage: "Last Message #1",
-      timeStamp: "today",
-    },
-    {
-      name: "Test#3",
-      lastMessage: "Last Message #1",
-      timeStamp: "today",
-    },
-  ]);
+  const dispatch = useDispatch();
+  const userData = JSON.parse(localStorage.getItem("user"));
+  const { refresh, setRefresh } = useContext(myContext);
+  const [conversations, setConversations] = useState([]);
+
+  if (!userData) {
+    console.log("Not auth");
+    navigate(-1);
+  }
+
+  const user = userData;
+  const self_id = user._id;
+  console.log("self", self_id);
+
+  useEffect(() => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+
+    axios.get("http://localhost:4000/chat/", config).then((response) => {
+      console.log("Data", response.data);
+      setConversations(response.data);
+    });
+    console.log("con", conversations);
+  }, [refresh]);
 
   const logOutHandler = () => {
     localStorage.clear();
@@ -41,7 +54,7 @@ function Sidebar() {
     <div className="sidebar-container">
       <div className="sb-header">
         <div>
-          <IconButton>
+          <IconButton onClick={() => navigate("/app/welcome")}>
             <AccountCircleIcon />
           </IconButton>
         </div>
@@ -76,10 +89,88 @@ function Sidebar() {
       </div>
 
       <div className="sb-conversations">
-        {conversations.map((conversation) => {
-          return (
-            <ConversationItems props={conversation} key={conversation.name} />
-          );
+        {conversations.map((conversation, index) => {
+          if (conversation.users.length == 1) {
+            return <div key={index}></div>;
+          }
+          if (conversation.lastMessage == undefined) {
+            return (
+              <div
+                key={index}
+                onClick={() => {
+                  console.log("refresh fired from sidebar ");
+                  setRefresh(!refresh);
+                }}
+              >
+                <div
+                  key={index}
+                  className="conversation-container"
+                  onClick={() => {
+                    console.log("clked");
+                    self_id == conversation.users[0]._id
+                      ? navigate(
+                          `chat/${conversation._id}&${conversation.users[1].name}`
+                        )
+                      : navigate(
+                          `chat/${conversation._id}&${conversation.users[0].name}`
+                        );
+                  }}
+                >
+                  <p className="con-icon">
+                    {self_id == conversation.users[0]._id
+                      ? conversation.users[1].name[0]
+                      : conversation.users[0].name[0]}
+                  </p>
+                  <p className="con-title">
+                    {self_id == conversation.users[0]._id
+                      ? conversation.users[1].name
+                      : conversation.users[0].name}
+                  </p>
+
+                  <p className="con-lastMessage">
+                    No previous Messages, click here to start a new chat
+                  </p>
+                  {/* <p className={"con-timeStamp" + (lightTheme ? "" : " dark")}>
+                {conversation.timeStamp}
+              </p> */}
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div
+                key={index}
+                className="conversation-container"
+                onClick={() => {
+                  self_id == conversation.users[0]._id
+                    ? navigate(
+                        `chat/${conversation._id}&${conversation.users[1].name}`
+                      )
+                    : navigate(
+                        `chat/${conversation._id}&${conversation.users[0].name}`
+                      );
+                }}
+              >
+                <p className="con-icon">
+                  {self_id == conversation.users[0]._id
+                    ? conversation.users[1].name[0]
+                    : conversation.users[0].name[0]}
+                </p>
+                <p className="con-title">
+                  {self_id == conversation.users[0]._id
+                    ? conversation.users[1].name
+                    : conversation.users[0].name}
+                </p>
+
+                <p className="con-lastMessage">
+                  {conversation.lastMessage.content}
+                </p>
+                {/* <p className={"con-timeStamp" + (lightTheme ? "" : " dark")}>
+                {conversation.timeStamp}
+              </p> */}
+              </div>
+            );
+          }
         })}
       </div>
     </div>
